@@ -2,27 +2,43 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
 
-class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-      </div>
-    );
+import { Client } from 'boardgame.io/react'
+import { AI } from 'boardgame.io/ai'
+import { RandomBot } from 'boardgame.io/ai'
+import { setPriority } from 'os';
+
+import { Practice } from './Game';
+import { Board } from './Board';
+
+
+class TestBoard extends Component{
+  render(){
+    return <div>
+      Test 3 
+      <p>Nice test.</p> 
+    </div>;
   }
 }
+
+const App = Client({
+  game: Practice,
+  board: Board,
+  ai: AI({
+    bot: RandomBot,
+    iterations: 1000,
+    playoutDepth: 55,
+
+    enumerate: (G, ctx, playerID) => {
+      // EH: automate this function, and add invitations
+      let moves = G.get_allowed_moves(G, ctx).map((moveName) => ({move: moveName}));
+      return moves;
+    },
+
+    objectives: G => {
+      return G.player.proficiency;
+    }
+
+  })
+})
 
 export default App;
