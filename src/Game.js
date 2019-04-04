@@ -1,6 +1,6 @@
 import { Game, TurnOrder } from 'boardgame.io/core';
 import { DIV } from './utils';
-
+import { PlayerInfo } from './PlayerInfo';
 
 
 function getAllowedMoves(G, ctx) {
@@ -68,29 +68,27 @@ const playerSetup = () => ({
     fans: 0,
   });
 
-
-const gameSetup = (ctx, players) => ({
-    difficulty: 1,
-    sleep_time: 0.25,
-    days: 0,
-    players: players,
-    get_allowed_moves: getAllowedMoves,
-    practice_type: "sing",
-    onStageBegin: onStageBegin,
-    onStageEnd: onStageEnd,
-  });
-  
 export const Practice = Game({
   
     setup: (ctx) => {
       // Set players
       let players = {};
+      let player_info = ctx.random.Shuffle(PlayerInfo);
       for (let i = 0; i < ctx.numPlayers; i++){
-        players[i + ''] = playerSetup();
+        players[i + ''] = {...playerSetup(), ...player_info[i]};
       }
 
       // Set G
-      return gameSetup(ctx, players);
+      return {
+        difficulty: 1,
+        sleep_time: 0.25,
+        days: 0,
+        players: players,
+        get_allowed_moves: getAllowedMoves,
+        practice_type: "sing",
+        onStageBegin: onStageBegin,
+        onStageEnd: onStageEnd,
+      };
   },
   
     

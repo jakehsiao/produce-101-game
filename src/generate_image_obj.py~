@@ -1,0 +1,13 @@
+import os
+
+imports = []
+items = []
+
+for fname_raw in os.listdir("../res"):
+    if fname_raw[-3:] == "jpg":
+        fname = fname_raw[:-4]
+        imports.append("import {} from ../res/{}.jpg".format(fname, fname))
+        items.append("{}: {}".format(fname, fname)
+
+with open ("Images.js", "w") as f:
+    f.writeline
