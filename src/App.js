@@ -23,6 +23,7 @@ class TestBoard extends Component{
 const App = Client({
   game: Practice,
   board: Board,
+  numPlayers: 10,
   ai: AI({
     bot: RandomBot,
     iterations: 1000,

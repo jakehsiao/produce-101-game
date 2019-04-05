@@ -12,6 +12,7 @@ import Ella from './res/Ella.jpg';
 import 孟大山 from './res/孟大山.jpg';
 import 齐波澜 from './res/齐波澜.jpg';
 import 刘菊 from './res/刘菊.jpg';
+import camera from './res/camera.png';
 import Red from './res/Red.jpg';
 export var Images = {
 WYB: WYB,
@@ -28,4 +29,5 @@ Ella: Ella,
 孟大山: 孟大山,
 齐波澜: 齐波澜,
 刘菊: 刘菊,
+camera: camera,
 Red: Red,};

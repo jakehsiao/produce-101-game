@@ -16,6 +16,7 @@ function getAllowedMoves(G, ctx) {
         "endTurn",
         "invitePractice",
         "testMove",
+        "promote",
       ];
   
       return moves;
@@ -40,12 +41,32 @@ function onStageEnd(G, ctx){
 
             player.fans += score;
 
-            if (G.days / 7 > 1){
             player.votes = ctx.random.Die(6, player.fans).reduce((a,b)=>a+b, 0);
-            }
 
             G.players[player_id] = player;
         }
+
+    let sorted_players = Object.keys(G.players).sort(
+            (p1, p2) => (G.players[p1].votes - G.players[p2].votes)
+        )
+        .filter(
+            p => !G.players[p].is_eliminated
+        );
+
+    console.log(sorted_players.map(p => [G.players[p].name, G.players[p].votes]))
+
+    // Eliminate players
+    if (G.days / 7 > 1 && G.days / 7 < 5){
+        G.players[sorted_players[0]].is_eliminated = true;
+        G.players[sorted_players[1]].is_eliminated = true;
+    }
+
+    // Get the winner
+    if (G.days / 7 == 5){
+        let game_result = { winner: G.players[sorted_players[sorted_players.length - 1]] };
+        console.log("Winner:", game_result.winner.name);
+        ctx.events.endGame();
+    }
 
 }
 
@@ -59,6 +80,60 @@ function onStageBegin(G, ctx){
     }
 }
 
+function onDayBegin(G, ctx){
+    G.days += 1;
+
+    for (var player in G.players){
+        G.players[player].lp = G.players[player].max_lp;
+        G.players[player].promoted = false;
+    }
+
+    // Fix the player not updated bug
+    // This solution is ugly, I know, when the author reply my issue it may be changed.
+    G.player = G.players[(G.days - 1) % ctx.numPlayers];
+    if (G.player.is_eliminated){
+        ctx.events.endTurn();
+    }
+
+    G.camera_position = ctx.random.Die(ctx.numPlayers - 1) + "";
+
+}
+
+function getFeasiblePlayers(G, ctx){
+    let feasible_players = [];
+
+    let player1 = G.player;
+    for (var i = 0; i < ctx.numPlayers; i++) {
+        let player2 = G.players[i];
+        // console.log(ctx.actionPlayers[0], player1, player2);
+  
+        let pts_per_stage = (G.practice_type == "proficiency")? 16 : 8; 
+        let delta = Math.floor(player1[G.practice_type] / pts_per_stage) - Math.floor(player2[G.practice_type] / pts_per_stage);
+  
+        let canPracticeTogether = true;
+        let teacher, student;
+        
+        if (delta > 0){
+          teacher = player1;
+          student = player2;
+        }
+        else if (delta < 0){
+          teacher = player2;
+          student = player1;
+        }
+        else{
+          canPracticeTogether = false;
+        }
+
+        if (canPracticeTogether){
+            feasible_players.push(i);
+        }
+    }
+
+    return feasible_players;
+
+}
+
 const playerSetup = () => ({
     sing: 0,
     dance: 0,
@@ -66,6 +141,8 @@ const playerSetup = () => ({
     lp: 3,
     max_lp: 3,
     fans: 0,
+    promoted: false,
+    is_eliminated: false,
   });
 
 export const Practice = Game({
@@ -74,6 +151,20 @@ export const Practice = Game({
       // Set players
       let players = {};
       let player_info = ctx.random.Shuffle(PlayerInfo);
+
+      let ycy_index = 0;
+
+
+      // YCY should always be at the first place
+      for (var i = 0; i < player_info.length; i++){
+          if (player_info[i].name == "杨超越"){
+              ycy_index = i;
+          }
+      }
+      let temp = player_info[0];
+      player_info[0] = player_info[ycy_index];
+      player_info[ycy_index] = temp;
+
       for (let i = 0; i < ctx.numPlayers; i++){
         players[i + ''] = {...playerSetup(), ...player_info[i]};
       }
@@ -81,13 +172,16 @@ export const Practice = Game({
       // Set G
       return {
         difficulty: 1,
-        sleep_time: 0.25,
+        sleep_time: -1,
         days: 0,
         players: players,
         get_allowed_moves: getAllowedMoves,
         practice_type: "sing",
         onStageBegin: onStageBegin,
         onStageEnd: onStageEnd,
+        onDayBegin: onDayBegin,
+        get_feasible_players: getFeasiblePlayers,
+        camera_position: "0",
       };
   },
   
@@ -95,7 +189,17 @@ export const Practice = Game({
   
     flow: {
       onTurnBegin(G, ctx){
+        console.log("It's a new turn!");
         G.player = G.players[ctx.currentPlayer];
+
+        if (G.player.is_eliminated){
+            console.log("Eliminated players can't play their turns.");
+            ctx.events.endTurn();
+        }
+      },
+
+      onTurnEnd(G, ctx){
+          console.log("End of this turn!");
       },
   
       onMove(G, ctx){
@@ -103,6 +207,7 @@ export const Practice = Game({
       },
   
       setActionPlayers: true,
+      endGame: true,
   
       startingPhase: 'practice',
   
@@ -124,22 +229,22 @@ export const Practice = Game({
 
   
         onPhaseBegin: (G, ctx) => {
+        console.log("It's a new phase!");
             if (G.days % 7 == 0){
+                // Adjust whether stage is changed here
                 G.onStageBegin(G, ctx);
             }
           // If preparation is required, run the preparation code here
   
           // If practice phase starts, run the following code
-          G.days += 1;
-  
-          for (var player in G.players){
-            G.players[player].lp = G.players[player].max_lp;
-          }
+          console.log("A new day!");
+          G.onDayBegin(G, ctx);
   
   
         },
   
         onPhaseEnd: (G, ctx) => {
+          console.log("Good night!");
           if (G.days % 7 == 0){
             G.onStageEnd(G, ctx);
           }
@@ -183,7 +288,9 @@ export const Practice = Game({
         }
 
         //TODO: before ask for acception, check whether it's able to practice or not.
-        if (id != 0){ // When fix the "player cannot choose" bug, this line will be changed.
+        let feasible_players = G.get_feasible_players(G, ctx);
+
+        if (id != 0 && id in feasible_players){ // When fix the "player cannot choose" bug, this line will be changed.
             ctx.events.setActionPlayers([id.toString()]);
             G.practice_type = practice_type;
 
@@ -193,35 +300,28 @@ export const Practice = Game({
       acceptInvitation(G, ctx){
         let player1 = G.player;
         let player2 = G.players[ctx.actionPlayers[0]];
-        // console.log(ctx.actionPlayers[0], player1, player2);
   
         let pts_per_stage = (G.practice_type == "proficiency")? 16 : 8; 
         let delta = Math.floor(player1[G.practice_type] / pts_per_stage) - Math.floor(player2[G.practice_type] / pts_per_stage);
         console.log("Accepted!");
   
-        let canPracticeTogether = true;
         let teacher, student;
         
         if (delta > 0){
           teacher = player1;
           student = player2;
         }
-        else if (delta < 0){
+        else {
           teacher = player2;
           student = player1;
         }
-        else{
-          canPracticeTogether = false;
-        }
   
-        if (canPracticeTogether){
-          teacher[G.practice_type] += 1;
-          student[G.practice_type] += 2;
-          console.log("Practiced together!");
-  
-        }
-        else{
-          console.log("Cannot practice together!");
+        teacher[G.practice_type] += 1;
+        student[G.practice_type] += 2;
+        console.log("Practiced together!");
+
+        if (G.camera_position in [ctx.currentPlayer, ctx.actionPlayers[0]]){
+            teacher.fans += 3;
         }
   
         ctx.events.setActionPlayers([ctx.currentPlayer]);
@@ -231,6 +331,14 @@ export const Practice = Game({
       rejectInvitation(G, ctx){
         console.log("Invitation rejected!");
         ctx.events.setActionPlayers([ctx.currentPlayer]);
+      },
+
+      promote(G, ctx){
+          if (!G.player.promoted && G.player.lp > 0){
+          G.player.fans += 1;
+          G.player.lp -= 1;
+          G.player.promoted = true;
+          }
       }
     }})
   
