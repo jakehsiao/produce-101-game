@@ -160,6 +160,8 @@ export class Board extends Component {
         <p className="stage-block">第{Math.ceil(this.props.G.days/7)}阶段 {(this.props.G.days - 1) % 7 + 1}/7天</p>
         {/* Make actions hide when the current player is not 0 */}
         <PlayerInfo player={this.props.G.player} />
+        {/* Change players is not required now, at least, or changing too much may not be a good idea. */}
+        {/* Or only change between player and cards? Emmm...sounds good. */}
         <AvatarRow players={this.props.G.players} camera_position={this.props.G.camera_position} currentPlayer={this.props.ctx.currentPlayer} />
         {(this.props.ctx.currentPlayer == "0" || this.props.G.sleep_time == -1)? 
           (<Controller 
