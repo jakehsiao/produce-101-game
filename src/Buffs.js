@@ -80,7 +80,7 @@ export var Buffs = {
             )
         }
     },
-    社交网络激励法: {
+    OPPO_R15_使用方法: {
         desc: "你每次推广以后，如果你手里没有行动卡，则摸1张",
         img: "Jason",
         effect(G, ctx){
