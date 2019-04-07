@@ -10,6 +10,10 @@ import { setPriority } from 'os';
 import { Practice } from './Game';
 import { Board } from './Board';
 
+import { Cards } from "./Cards";
+import { Buffs } from "./Buffs";
+import { CardRow } from "./CardDisplay"
+
 
 class TestBoard extends Component{
   render(){
@@ -19,6 +23,24 @@ class TestBoard extends Component{
     </div>;
   }
 }
+
+const App2 = (props) => (
+  <CardRow 
+  cards = {Object.keys(Cards)}
+  type = "card"
+  onClickCard = {(i) => () => console.log("Operated!")}
+  operation = "预约"
+  cardCost = {(i) => {
+    let card = Cards[Object.keys(Cards)[i]];
+    if (card.cost != undefined){
+      return card.cost + "";
+    }
+    else{
+      return 1 + "";
+    }
+  }}
+  />
+)
 
 const App = Client({
   game: Practice,

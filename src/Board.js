@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
 import { sleep, DIV } from './utils';
 import { Images } from './Images';
+import { CardRow } from './CardDisplay';
+
+import { Cards } from './Cards';
+import { Buffs } from './Buffs';
 
 import "./Board.css";
 import { Pass } from 'boardgame.io/dist/core';
@@ -23,6 +27,7 @@ class Controller extends Component {
             main: {
                 练习: () => (this.set_branch("practice")),
                 推广: this.props.moves.promote,
+                行动: this.props.act,
             },
             practice: {
                 唱歌基础: this.props.moves.practiceBasicSing,
@@ -139,6 +144,9 @@ export class Board extends Component {
 
     constructor(props){
       super(props);
+      this.state = {
+          content: "board",
+      }
     }
   
     componentDidUpdate(prevProps){
@@ -156,21 +164,71 @@ export class Board extends Component {
     }
   
     render(){
-      return <div>
-        <p className="stage-block">第{Math.ceil(this.props.G.days/7)}阶段 {(this.props.G.days - 1) % 7 + 1}/7天</p>
-        {/* Make actions hide when the current player is not 0 */}
-        <PlayerInfo player={this.props.G.player} />
-        {/* Change players is not required now, at least, or changing too much may not be a good idea. */}
-        {/* Or only change between player and cards? Emmm...sounds good. */}
-        <AvatarRow players={this.props.G.players} camera_position={this.props.G.camera_position} currentPlayer={this.props.ctx.currentPlayer} />
-        {(this.props.ctx.currentPlayer == "0" || this.props.G.sleep_time == -1)? 
-          (<Controller 
-            player={this.props.G.player} 
-            get_feasible_players={() => this.props.G.get_feasible_players(this.props.G, this.props.ctx)} 
-            moves={this.props.moves} 
-            />)
-            :""}
-        </div>;
+      let contents = {
+          board: (
+            <div>
+            <p className="stage-block">第{Math.ceil(this.props.G.days/7)}阶段 {(this.props.G.days - 1) % 7 + 1}/7天</p>
+            {/* Make actions hide when the current player is not 0 */}
+            <PlayerInfo player={this.props.G.player} />
+            {/* Change players is not required now, at least, or changing too much may not be a good idea. */}
+            {/* Or only change between player and cards? Emmm...sounds good. */}
+            <AvatarRow players={this.props.G.players} camera_position={this.props.G.camera_position} currentPlayer={this.props.ctx.currentPlayer} />
+            {(this.props.ctx.currentPlayer == "0" || this.props.G.sleep_time == -1)? 
+              (<Controller 
+                player={this.props.G.player} 
+                get_feasible_players={() => this.props.G.get_feasible_players(this.props.G, this.props.ctx)} 
+                moves={this.props.moves} 
+                act={() => this.setState({content: "act"})}
+                />)
+                :""}
+            </div>
+          ),
+
+          act: (
+              <div>
+                  你的行动卡：
+                  <CardRow 
+                    cards = {this.props.G.player.hand} 
+                    type = "card" 
+                    onClickCard = {(i) => () => {
+                        this.props.moves.useCard(i);
+                        this.setState({content: "board"});
+                    }}
+                    operation = "使用"
+                    cardCost = {(i) => {
+                        let card = Cards[this.props.G.player.hand[i]];
+                        if (card.cost != undefined){
+                          return card.cost + "";
+                        }
+                        else{
+                          return 1 + "";
+                        }
+                      }}
+                  />
+                  <button onClick={()=>this.setState({content:"board"})} style={{width:"50px", height:"20px"}} >返回</button>
+              </div>
+          ),
+
+
+      }
+
+      return contents[this.state.content];
+
+    //   return <div>
+    //     <p className="stage-block">第{Math.ceil(this.props.G.days/7)}阶段 {(this.props.G.days - 1) % 7 + 1}/7天</p>
+    //     {/* Make actions hide when the current player is not 0 */}
+    //     <PlayerInfo player={this.props.G.player} />
+    //     {/* Change players is not required now, at least, or changing too much may not be a good idea. */}
+    //     {/* Or only change between player and cards? Emmm...sounds good. */}
+    //     <AvatarRow players={this.props.G.players} camera_position={this.props.G.camera_position} currentPlayer={this.props.ctx.currentPlayer} />
+    //     {(this.props.ctx.currentPlayer == "0" || this.props.G.sleep_time == -1)? 
+    //       (<Controller 
+    //         player={this.props.G.player} 
+    //         get_feasible_players={() => this.props.G.get_feasible_players(this.props.G, this.props.ctx)} 
+    //         moves={this.props.moves} 
+    //         />)
+    //         :""}
+    //     </div>;
     }
   }
   

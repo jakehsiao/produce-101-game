@@ -1,8 +1,10 @@
 import WYB from './res/WYB.jpg';
 import 中国man from './res/中国man.jpg';
+import OPPO_R15 from './res/OPPO_R15.jpg';
 import 赖小六 from './res/赖小六.jpg';
 import 程书森 from './res/程书森.jpg';
 import Delicious from './res/Delicious.jpg';
+import camera_alpha from './res/camera_alpha.png';
 import HYB from './res/HYB.jpg';
 import 郎一风 from './res/郎一风.jpg';
 import Jason from './res/Jason.png';
@@ -13,13 +15,16 @@ import 孟大山 from './res/孟大山.jpg';
 import 齐波澜 from './res/齐波澜.jpg';
 import 刘菊 from './res/刘菊.jpg';
 import camera from './res/camera.png';
+import IceTea from './res/IceTea.jpg';
 import Red from './res/Red.jpg';
 export var Images = {
 WYB: WYB,
 中国man: 中国man,
+OPPO_R15: OPPO_R15,
 赖小六: 赖小六,
 程书森: 程书森,
 Delicious: Delicious,
+camera_alpha: camera_alpha,
 HYB: HYB,
 郎一风: 郎一风,
 Jason: Jason,
@@ -30,4 +35,5 @@ Ella: Ella,
 齐波澜: 齐波澜,
 刘菊: 刘菊,
 camera: camera,
+IceTea: IceTea,
 Red: Red,};

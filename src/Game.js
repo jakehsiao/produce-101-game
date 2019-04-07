@@ -78,6 +78,7 @@ function onStageBegin(G, ctx){
         let player = G.players[player_id];
 
         player.proficiency = 0;
+        player.hand.push(G.random_choice(Cards));  //TODO: change this according to which phase
 
         G.players[player_id] = player;
     }
@@ -363,15 +364,27 @@ export const Practice = Game({
 
       useCard(G, ctx, id){
           console.log("Player wants to use the card.");
+          if (G.player.hand.length != 0 && id == undefined) {
+              id = ctx.random.Die(G.player.hand.length);
+          }
           if (id < G.player.hand.length){
               let card = G.player.hand[id];
-              let cost = Cards[card].cost || 1;
+              // Do not use || for undefined!
+              let cost = card.cost;
+              if (card.cost == undefined){
+                  cost = 1;
+              }
               if (G.player.lp >= cost){
+                // Use the card here
                 G.player.lp -= cost;
 
                 G.player.hand.splice(id, 1);
                 Cards[card].effect(G, ctx);
                 console.log("Card used!");
+
+                if (G.camera_position == ctx.currentPlayer){
+                    G.player.fans += 2;
+                }
               }
           }
 
