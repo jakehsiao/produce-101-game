@@ -28,6 +28,7 @@ class Controller extends Component {
                 练习: () => (this.set_branch("practice")),
                 推广: this.props.moves.promote,
                 行动卡: this.props.act,
+                特训: () => (this.set_branch("train")),
             },
             practice: {
                 唱歌基础: this.props.moves.practiceBasicSing,
@@ -53,6 +54,10 @@ class Controller extends Component {
                 // TODO: make this rendered in another component 
                 return this.props.get_feasible_players().map((id) => ({[id]: this.props.moves.invitePractice(id, this.state.practice_type)}));
             },
+            train: {
+                预约: this.props.appoint,
+                上课: this.props.train,
+            }
         }
     }
 
@@ -179,6 +184,8 @@ export class Board extends Component {
                 get_feasible_players={() => this.props.G.get_feasible_players(this.props.G, this.props.ctx)} 
                 moves={this.props.moves} 
                 act={() => this.setState({content: "act"})}
+                appoint={() => this.setState({content: "appoint"})}
+                train={() => this.setState({content: "train"})}
                 />)
                 :""}
             </div>
@@ -209,6 +216,39 @@ export class Board extends Component {
               </div>
           ),
 
+          appoint: (
+            <div>
+                可预约的特训课：
+                <CardRow 
+                  cards = {this.props.G.buffs} 
+                  type = "buff" 
+                  onClickCard = {(i) => () => {
+                      this.props.moves.appoint(i);
+                      this.setState({content: "board"});
+                  }}
+                  operation = "预约"
+                  cardCost = {(i) => (this.props.G.appointment_costs[i])}
+                />
+                <button onClick={()=>this.setState({content:"board"})} style={{width:"50px", height:"20px"}} >返回</button>
+            </div>
+        ),
+
+        train: (
+            <div>
+                已预约的特训课：
+                <CardRow 
+                  cards = {this.props.G.player.appointments} 
+                  type = "buff" 
+                  onClickCard = {(i) => () => {
+                      this.props.moves.train(i);
+                      this.setState({content: "board"});
+                  }}
+                  operation = "上课"
+                  cardCost = {(i) => (3)}
+                />
+                <button onClick={()=>this.setState({content:"board"})} style={{width:"50px", height:"20px"}} >返回</button>
+            </div>
+        ),
 
       }
 

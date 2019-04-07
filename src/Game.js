@@ -3,6 +3,7 @@ import { DIV } from './utils';
 import { PlayerInfo } from './PlayerInfo';
 
 import { Cards } from './Cards';
+import { Buffs } from './Buffs';
 
 
 function getAllowedMoves(G, ctx) {
@@ -20,6 +21,8 @@ function getAllowedMoves(G, ctx) {
         "testMove",
         "promote",
         "useCard",
+        "appoint",
+        "train",
       ];
   
       return moves;
@@ -92,7 +95,11 @@ function onDayBegin(G, ctx){
         G.players[player].promoted = false;
     }
 
-    G.camera_position = ctx.random.Die(ctx.numPlayers - 1) + "";
+    G.camera_position = (ctx.random.Die(ctx.numPlayers) - 1) + "";
+
+    G.buffs.unshift(G.random_choice(Buffs));
+    G.appointment_costs.unshift(4);
+    G.appointment_costs = G.appointment_costs.map(i => Math.max(i-1, 0));
 
     // Fix the player not updated bug
     G.player = G.players[(G.days - 1) % ctx.numPlayers];
@@ -169,6 +176,8 @@ const playerSetup = () => ({
     promoted: false,
     is_eliminated: false,
     hand: [],
+    appointments: [],
+    buffs: [],
   });
 
 export const Practice = Game({
@@ -200,6 +209,9 @@ export const Practice = Game({
         days: 0,
 
         players: players,
+
+        buffs: [],
+        appointment_costs: [],
 
         get_allowed_moves: getAllowedMoves,
         onStageBegin: onStageBegin,
@@ -375,7 +387,7 @@ export const Practice = Game({
       useCard(G, ctx, id){
           console.log("Player wants to use the card.");
           if (G.player.hand.length != 0 && id == undefined) {
-              id = ctx.random.Die(G.player.hand.length);
+              id = ctx.random.Die(G.player.hand.length) - 1;
           }
           if (id < G.player.hand.length){
               let card = G.player.hand[id];
@@ -396,7 +408,48 @@ export const Practice = Game({
               }
           }
 
+      },
+      appoint(G, ctx, id){
+        if (id == undefined && G.buffs.length > 0){
+          id = ctx.random.Die(G.buffs.length) - 1;
+        }
+
+        if (id < G.buffs.length){
+          console.log("Player wants to make an appointment.");
+          let cost = G.appointment_costs[id];
+
+          if (G.cost_lp(G, cost)){
+            G.player.appointments.push(G.buffs[id]);
+            G.buffs.splice(id, 1);
+            G.appointment_costs.splice(id, 1);
+            console.log("Appointed!");
+          }
+
+        }
+
+      },
+
+      train(G, ctx, id){
+        console.log("Player wants to train.");
+        if (G.player.appointments.length != 0 && id == undefined) {
+            id = ctx.random.Die(G.player.appointments.length) - 1;
+        }
+        if (id < G.player.appointments.length){
+            let card = G.player.appointments[id];
+            let cost = 3;
+            if (G.cost_lp(G, cost)){
+              // Use the card here
+              G.player.appointments.splice(id, 1);
+              //Cards[card].effect(G, ctx);
+              console.log("Trained!");
+
+              if (G.camera_position == ctx.currentPlayer){
+                  G.player.fans += 5;
+              }
+            }
+        }
       }
+
     }})
   
 
