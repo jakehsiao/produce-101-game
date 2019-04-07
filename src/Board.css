@@ -4,7 +4,19 @@
     height: 50px;
     padding-top: 20px;
     padding-left: 5px;
+    margin: 10px;
 
+}
+
+.message-block{
+    border-style: solid;
+    width: 300px;
+    height: 40px;
+    margin: 10px;
+    padding-left: 5px;
+    padding-top: 5px;
+    overflow-y: scroll;
+    font-size: 80%;
 }
 
 .player-info-block{
@@ -13,13 +25,14 @@
     height: 175px;
     padding-left: 5px;
 
-    margin-bottom: 10px;
+    margin: 10px;
 
 }
 
 .avatar-block {
     display: flex;
     width: 250px;
+    margin: 10px;
     margin-bottom: 20px;
     flex-wrap: wrap;
 }
@@ -38,6 +51,8 @@
 .camera{
     position: relative;
     height: 20px;
+    border-style: solid;
+    border-width: 1px;
     top: -60%;
     left: 60%;
 }
@@ -51,11 +66,18 @@ img.photo{
     display: inline-block;
     width: 150px;
     line-height: 50%;
-    font-size: 80%;
+    font-size: 75%;
 }
 
 .player-photo{
     display: inline-block;
+}
+
+.player-camera{
+    position: relative;
+    top: -30%;
+    left: 80%;
+    height: 80px;
 }
 
 button.endturn{
@@ -69,6 +91,7 @@ button.endturn{
     display: flex;
     width: 300px;
     height: 40px;
+    margin: 10px;
 }
 
 .controller-button{
@@ -76,4 +99,18 @@ button.endturn{
     background-color: gainsboro;
     margin: 3px;
     font-size: 65%;
+}
+
+.controller-util{
+    margin: 10px;
+}
+
+.back{
+    background-color: gainsboro;
+    width: 100px;
+    height: 50px;
+}
+
+.end-game{
+    margin: 10px;
 }

@@ -18,7 +18,7 @@ function getAllowedMoves(G, ctx) {
         "practiceSong",
         "endTurn",
         "invitePractice",
-        "testMove",
+        //"testMove",
         "promote",
         "useCard",
         "appoint",
@@ -61,6 +61,16 @@ function onStageEnd(G, ctx){
 
     console.log(sorted_players.map(p => [G.players[p].name, G.players[p].votes]))
 
+    sorted_players.map((p, i, arr) => (G.players[p].rank = arr.length - i))
+
+    if (G.days / 7 > 1){
+    alert(
+      sorted_players.reverse().map((i, rank) => ((rank+1)+": "+G.players[i+""].name+" "+G.players[i+""].votes+"票")).join("\n")
+      );
+    //reverse again
+    sorted_players.reverse();
+    }
+
     // Eliminate players
     if (G.days / 7 > 1 && G.days / 7 < 5){
         G.players[sorted_players[0]].is_eliminated = true;
@@ -81,6 +91,9 @@ function onStageBegin(G, ctx){
         let player = G.players[player_id];
 
         player.proficiency = 0;
+        player.hand = [];
+        player.appointments = [];
+
         player.hand.push(G.random_choice(Cards));  //TODO: change this according to which phase
 
         G.players[player_id] = player;
@@ -97,6 +110,11 @@ function onDayBegin(G, ctx){
 
     G.camera_position = (ctx.random.Die(ctx.numPlayers) - 1) + "";
 
+    if (G.days % 7 == 1) {
+      for(let i=0; i<2; i++){
+    G.buffs.unshift(G.random_choice(Buffs));
+    G.appointment_costs.unshift(4);}
+    }
     G.buffs.unshift(G.random_choice(Buffs));
     G.appointment_costs.unshift(4);
     G.appointment_costs = G.appointment_costs.map(i => Math.max(i-1, 0));
@@ -155,6 +173,7 @@ function drawCard(G, ctx, count){
 
 function costLP(G, count){
     if (G.player.lp >= count){
+        console.log("It is larger!");
         G.player.lp -= count;
         return true;
     }
@@ -164,6 +183,12 @@ function startTurn(G, ctx){
     if (G.player.is_eliminated){
         ctx.events.endTurn();
     }
+}
+
+function execute(G, ctx, functions){
+  for (let i = 0; i < functions.length; i++){
+    functions[i](G, ctx);
+  }
 }
 
 const playerSetup = () => ({
@@ -178,6 +203,18 @@ const playerSetup = () => ({
     hand: [],
     appointments: [],
     buffs: [],
+
+    rank: 0,
+
+    onPracticeBasicSing: [(G, ctx) => G.messages.unshift(G.player.name+" 练习了唱歌基础")],
+    onPracticeBasicDance: [(G, ctx) => G.messages.unshift(G.player.name+" 练习了跳舞基础")],
+    onPracticeSong: [(G, ctx) => G.messages.unshift(G.player.name+" 练习了歌曲")],
+    onBasicSingLevelUp: [(G, ctx) => G.messages.unshift(G.player.name+" 唱歌基础提升至"+(DIV(G.player.sing, 8)+1+"")+"阶")],
+    onBasicDanceLevelUp: [(G, ctx) => G.messages.unshift(G.player.name+" 跳舞基础提升至"+(DIV(G.player.dance, 8)+1+"")+"阶")],
+    onProficiencyLevelUp: [(G, ctx) => G.messages.unshift(G.player.name+" 歌曲熟练度提升至"+(DIV(G.player.proficiency, 16)+1+"")+"阶")],
+    onPromote: [(G, ctx) => G.messages.unshift(G.player.name+" 发了一条微视视频推广自己")],
+    onAppoint: [],
+    onTrain: [],
   });
 
 export const Practice = Game({
@@ -200,18 +237,25 @@ export const Practice = Game({
       // Set players
       for (let i = 0; i < ctx.numPlayers; i++){
         players[i + ''] = {...playerSetup(), ...player_info[i]};
+        // Set single player difficulty
+        if (i != 0){
+          players[i + ''].fans = 10;
+        }
       }
+
 
       // Set G
       return {
         difficulty: 1,
-        sleep_time: 0.1,
+        sleep_time: 0.01,
         days: 0,
 
         players: players,
 
         buffs: [],
         appointment_costs: [],
+
+        messages: ["Welcome to produce 101 simulator."],
 
         get_allowed_moves: getAllowedMoves,
         onStageBegin: onStageBegin,
@@ -222,9 +266,12 @@ export const Practice = Game({
         random_choice: (list) => randomChoice(list, ctx),
         cost_lp: costLP,
         start_turn: startTurn,
+        execute: execute,
+
 
         camera_position: "0",
         practice_type: "sing",
+
       };
   },
   
@@ -240,6 +287,7 @@ export const Practice = Game({
 
       onTurnEnd(G, ctx){
           console.log("End of this turn!");
+          G.messages.unshift(G.player.name + " 结束了回合");
       },
   
       onMove(G, ctx){
@@ -296,22 +344,47 @@ export const Practice = Game({
     moves: {
       practiceBasicSing(G, ctx){
         if (G.cost_lp(G, 1)){ 
+        let previous_value_sing = G.player.sing;
+
         G.player.sing += 1;
+        G.player.sing = Math.min(32, G.player.sing);
+
+        G.execute(G, ctx, G.player.onPracticeBasicSing);
+
+        if (DIV(G.player.sing, 8) - DIV(previous_value_sing, 8) > 0){
+          G.execute(G, ctx, G.player.onBasicSingLevelUp);
+        }
+
+
         }
       },
       practiceBasicDance(G, ctx){
         if (G.cost_lp(G, 1)){ 
+        let previous_value_dance = G.player.dance;
+
         G.player.dance += 1;
+        G.player.dance = Math.min(32, G.player.dance);
+        G.execute(G, ctx, G.player.onPracticeBasicDance);
+        if (DIV(G.player.dance, 8) - DIV(previous_value_dance, 8) > 0){
+          G.execute(G, ctx, G.player.onBasicDanceLevelUp);
+        }
+
         }
     },
       practiceSong(G, ctx){
         if (G.cost_lp(G, 1)){
+        let previous_value = G.player.proficiency;
         G.player.proficiency += Math.floor(Math.min(G.player.sing, G.player.dance) / 8) - G.difficulty + 2;
+        G.player.proficiency = Math.min(48, G.player.proficiency);
+        G.execute(G, ctx, G.player.onPracticeSong);
+        if (DIV(G.player.proficiency, 8) - DIV(previous_value, 8) > 0){
+          G.execute(G, ctx, G.player.onProficiencyLevelUp);
+        }
         }
       },
       testMove(G, ctx){
         console.log("It is the test move.");
-        G.draw_card(G, ctx);
+        G.player.lp = G.player.max_lp;
       },
       endTurn(G, ctx){
         ctx.events.endTurn();
@@ -333,6 +406,7 @@ export const Practice = Game({
             G.practice_type = practice_type;
 
             console.log(ctx.currentPlayer, "invited", id, "to practice");
+            G.messages.unshift(G.players[ctx.currentPlayer].name+" 邀请 "+G.players[id+""].name+" 一起练习")
         }
       },
       acceptInvitation(G, ctx){
@@ -342,6 +416,7 @@ export const Practice = Game({
         let pts_per_stage = (G.practice_type == "proficiency")? 16 : 8; 
         let delta = Math.floor(player1[G.practice_type] / pts_per_stage) - Math.floor(player2[G.practice_type] / pts_per_stage);
         console.log("Accepted!");
+        G.messages.unshift(G.players[ctx.actionPlayers[0]].name+" 同意了合练请求")
   
         let teacher, student;
         
@@ -372,6 +447,7 @@ export const Practice = Game({
   
       rejectInvitation(G, ctx){
         console.log("Invitation rejected!");
+        G.messages.unshift(G.players[ctx.actionPlayers[0]].name+" 拒绝了合练请求")
         ctx.events.setActionPlayers([ctx.currentPlayer]);
       },
 
@@ -380,6 +456,9 @@ export const Practice = Game({
           G.player.fans += 1;
           G.player.lp -= 1;
           G.player.promoted = true;
+
+          G.execute(G, ctx, G.player.onPromote);
+
           console.log("Promoted!");
           }
       },
@@ -392,15 +471,17 @@ export const Practice = Game({
           if (id < G.player.hand.length){
               let card = G.player.hand[id];
               // Do not use || for undefined!
-              let cost = card.cost;
-              if (card.cost == undefined){
+              let cost = Cards[card].cost;
+              if (cost == undefined){
                   cost = 1;
               }
+              console.log("Card cost: ", cost);
               if (G.cost_lp(G, cost)){
                 // Use the card here
                 G.player.hand.splice(id, 1);
                 Cards[card].effect(G, ctx);
                 console.log("Card used!");
+                G.messages.unshift(G.player.name + " 使用了行动卡 " + card);
 
                 if (G.camera_position == ctx.currentPlayer){
                     G.player.fans += 2;
@@ -419,10 +500,12 @@ export const Practice = Game({
           let cost = G.appointment_costs[id];
 
           if (G.cost_lp(G, cost)){
-            G.player.appointments.push(G.buffs[id]);
+            G.player.appointments.unshift(G.buffs[id]);
             G.buffs.splice(id, 1);
             G.appointment_costs.splice(id, 1);
+            G.execute(G, ctx, G.player.onAppoint);
             console.log("Appointed!");
+            G.messages.unshift(G.player.name + " 预约了特训课 "+G.player.appointments[0]);
           }
 
         }
@@ -440,8 +523,11 @@ export const Practice = Game({
             if (G.cost_lp(G, cost)){
               // Use the card here
               G.player.appointments.splice(id, 1);
-              //Cards[card].effect(G, ctx);
+              Buffs[card].effect(G, ctx);
+              G.player.buffs.push(card);
+              G.execute(G, ctx, G.player.onTrain);
               console.log("Trained!");
+              G.messages.unshift(G.player.name + " 上了特训课 "+card);
 
               if (G.camera_position == ctx.currentPlayer){
                   G.player.fans += 5;

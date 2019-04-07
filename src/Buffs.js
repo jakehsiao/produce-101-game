@@ -41,8 +41,8 @@ export var Buffs = {
         effect(G, ctx){
             G.player.onPracticeSong.push(
                 (G, ctx) => {
-                    if (G.proficiency < 16){
-                        G.proficiency += 2;
+                    if (G.player.proficiency < 16){
+                        G.player.proficiency += 2;
                     }
 
                 }
@@ -76,7 +76,7 @@ export var Buffs = {
                 (G, ctx) => {
                     G.player.fans += 1;
                 }
-            )
+            );
         }
     },
     OPPO_R15: {
@@ -89,7 +89,7 @@ export var Buffs = {
                         G.draw_card(G, ctx);
                     }
                 }
-            )
+            );
         }
     },
     // 特别的表演技巧: {
@@ -105,7 +105,7 @@ export var Buffs = {
         desc: "如果你上过的特训课多于3节，则每次预约特训课后，回复1点体力",
         img: "Ella",
         effect(G, ctx){
-            G.player.onAppointment.push(
+            G.player.onAppoint.push(
                 (G, ctx) => {
                     if ((G.player.buffs.length) >= 3){
                         G.player.lp += 1;

@@ -127,9 +127,9 @@ class PlayerInfo extends Component {
         return <div class="player-info-block">
             <div className="player-info">
             <h3>{this.props.player.name}</h3>
-            <p>唱歌基础: {this.props.player.sing}</p>
-            <p>跳舞基础: {this.props.player.dance}</p>
-            <p>歌曲熟练度: {this.props.player.proficiency}</p>
+            <p>唱歌基础: {DIV(this.props.player.sing, 8) + 1}阶 {this.props.player.sing % 8}/8</p>
+            <p>跳舞基础: {DIV(this.props.player.dance, 8) + 1}阶 {this.props.player.dance % 8}/8</p>
+            <p>歌曲熟练度: {DIV(this.props.player.proficiency, 16) + 1}阶 {this.props.player.proficiency % 16}/16</p>
             <p>粉丝数: {this.props.player.fans}</p>
             <p>体力: {this.props.player.lp}/{this.props.player.max_lp}</p>
             </div>
@@ -140,6 +140,7 @@ class PlayerInfo extends Component {
             alt={this.props.player.name+"_photo"} 
             />
             </div>
+            {(this.props.camera)?(<img className="player-camera" src={Images.camera} />):""}
         </div>
     }
 
@@ -152,6 +153,8 @@ export class Board extends Component {
       this.state = {
           content: "board",
       }
+
+      this.timeout_process_id = 0;
     }
   
     componentDidUpdate(prevProps){
@@ -160,7 +163,7 @@ export class Board extends Component {
       if (this.props.ctx.actionPlayers.indexOf("0") == -1){
         if (this.props.G.sleep_time > 0){
         //   console.log("AI has made a move!");
-          sleep(this.props.G.sleep_time * 1000).then(this.props.step).then((move) => (console.log(move.payload.type)));
+          sleep(this.props.G.sleep_time * 1000).then((this.props.G.player.lp==0)?this.props.moves.endTurn:this.props.step);
         }
         else if (this.props.G.sleep_time == 0){
           this.props.step();
@@ -169,12 +172,27 @@ export class Board extends Component {
     }
   
     render(){
+      if (this.props.G.players["0"].is_eliminated || this.props.ctx.gameover != undefined){
+          return <div className="end-game">
+              <h3>最终名次: {this.props.G.players["0"].rank}</h3>
+              <b>{(this.props.G.players["0"].rank == 1)? "大吉大利，今晚出道！":"下次会更好！"}</b>
+              <div style={{fontSize:"50%"}}>
+                  <p></p>
+              </div>
+              <br/><br/><br/>
+              <button onClick={this.props.reset} style={{width:"100px", height:"61.7px", backgroundColor:"gainsboro", fontSize:"100%"}}>再来一局</button>
+          </div>
+      }
+    
+
+
       let contents = {
           board: (
             <div>
             <p className="stage-block">第{Math.ceil(this.props.G.days/7)}阶段 {(this.props.G.days - 1) % 7 + 1}/7天</p>
             {/* Make actions hide when the current player is not 0 */}
-            <PlayerInfo player={this.props.G.player} />
+            <div className="message-block">{this.props.G.messages[0]}</div>
+            <PlayerInfo player={this.props.G.player} camera={this.props.G.camera_position == this.props.ctx.currentPlayer} />
             {/* Change players is not required now, at least, or changing too much may not be a good idea. */}
             {/* Or only change between player and cards? Emmm...sounds good. */}
             <AvatarRow players={this.props.G.players} camera_position={this.props.G.camera_position} currentPlayer={this.props.ctx.currentPlayer} />
@@ -212,7 +230,7 @@ export class Board extends Component {
                         }
                       }}
                   />
-                  <button onClick={()=>this.setState({content:"board"})} style={{width:"50px", height:"20px"}} >返回</button>
+                  <button onClick={()=>this.setState({content:"board"})} className="back">返回</button>
               </div>
           ),
 
@@ -229,7 +247,7 @@ export class Board extends Component {
                   operation = "预约"
                   cardCost = {(i) => (this.props.G.appointment_costs[i])}
                 />
-                <button onClick={()=>this.setState({content:"board"})} style={{width:"50px", height:"20px"}} >返回</button>
+                <button onClick={()=>this.setState({content:"board"})} className="back">返回</button>
             </div>
         ),
 
@@ -246,7 +264,7 @@ export class Board extends Component {
                   operation = "上课"
                   cardCost = {(i) => (3)}
                 />
-                <button onClick={()=>this.setState({content:"board"})} style={{width:"50px", height:"20px"}} >返回</button>
+                <button onClick={()=>this.setState({content:"board"})} className="back">返回</button>
             </div>
         ),
 

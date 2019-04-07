@@ -1,3 +1,5 @@
+import { Buffs } from "./Buffs"
+
 var empty_card = {
     name: {
         desc: "",
@@ -94,8 +96,9 @@ export var Cards = {
         desc: "随机预约1节特训课",
         img: "齐波澜",
         effect(G, ctx){
-            //TODO: add this one
             console.log("Made an appointment.");
+            G.player.appointments.unshift(G.random_choice(Buffs));
+            G.execute(G, ctx, G.player.onAppoint);
         }
     },
     无中生有: {
