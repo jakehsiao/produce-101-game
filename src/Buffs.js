@@ -53,9 +53,8 @@ export var Buffs = {
         desc: "在你的唱歌或跳舞基础升阶时，摸1张行动卡",
         img: "Ella",
         effect(G, ctx){
-            let drawCard = (G, ctx) => (G.draw_card());
-            G.player.onBasicSingLevelUp.push(drawCard);
-            G.player.onBasicDanceLevelUp.push(drawCard);
+            G.player.onBasicSingLevelUp.push(G.draw_card);
+            G.player.onBasicDanceLevelUp.push(G.draw_card);
         }
     },
     如何爱上练习: {
@@ -82,12 +81,12 @@ export var Buffs = {
     },
     OPPO_R15_使用方法: {
         desc: "你每次推广以后，如果你手里没有行动卡，则摸1张",
-        img: "Jason",
+        img: "OPPO_R15",
         effect(G, ctx){
             G.player.onPromote.push(
                 (G, ctx) => {
-                    if (G.player.cards.length == 0){
-                        G.draw_card();
+                    if (G.player.hand.length == 0){
+                        G.draw_card(G, ctx);
                     }
                 }
             )
@@ -119,7 +118,13 @@ export var Buffs = {
     导师们的青睐: {
         desc: "如果你上过的特训课多于3节，则每次上完特训课后，摸1张行动卡",
         img: "Red",
-        effect(G, ctx){}
+        effect(G, ctx){G.player.onTrain.push(
+                (G, ctx) => {
+                    if ((G.player.buffs.length) >= 3){
+                        G.draw_card(G, ctx);
+                    }
+                }
+            )}
     },
     行动力训练: {
         desc: "如果你手里的行动卡数量多于3张，则练习歌曲时，熟练度的提升量+2",
@@ -127,7 +132,7 @@ export var Buffs = {
         effect(G, ctx){
             G.player.onPracticeSong.push(
                 (G, ctx) => {
-                    if (G.player.cards.length >= 3){
+                    if (G.player.hand.length >= 3){
                         G.player.proficiency += 2;
                     }
                 }

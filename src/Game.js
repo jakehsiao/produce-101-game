@@ -2,6 +2,8 @@ import { Game, TurnOrder } from 'boardgame.io/core';
 import { DIV } from './utils';
 import { PlayerInfo } from './PlayerInfo';
 
+import { Cards } from './Cards';
+
 
 function getAllowedMoves(G, ctx) {
     if (ctx.currentPlayer != ctx.actionPlayers[0]){
@@ -17,6 +19,7 @@ function getAllowedMoves(G, ctx) {
         "invitePractice",
         "testMove",
         "promote",
+        "useCard",
       ];
   
       return moves;
@@ -134,6 +137,17 @@ function getFeasiblePlayers(G, ctx){
 
 }
 
+function randomChoice(obj, ctx){
+    return ctx.random.Shuffle(Object.keys(obj))[0];
+}
+
+function drawCard(G, ctx, count){
+    count = count || 1;
+    for(let i=0; i<count; i++){
+        G.player.hand.push(G.random_choice(Cards));
+    }
+}
+
 const playerSetup = () => ({
     sing: 0,
     dance: 0,
@@ -143,19 +157,17 @@ const playerSetup = () => ({
     fans: 0,
     promoted: false,
     is_eliminated: false,
+    hand: [],
   });
 
 export const Practice = Game({
   
     setup: (ctx) => {
-      // Set players
+      // Set players info
       let players = {};
       let player_info = ctx.random.Shuffle(PlayerInfo);
-
-      let ycy_index = 0;
-
-
       // YCY should always be at the first place
+      let ycy_index = 0;
       for (var i = 0; i < player_info.length; i++){
           if (player_info[i].name == "杨超越"){
               ycy_index = i;
@@ -165,6 +177,7 @@ export const Practice = Game({
       player_info[0] = player_info[ycy_index];
       player_info[ycy_index] = temp;
 
+      // Set players
       for (let i = 0; i < ctx.numPlayers; i++){
         players[i + ''] = {...playerSetup(), ...player_info[i]};
       }
@@ -172,16 +185,21 @@ export const Practice = Game({
       // Set G
       return {
         difficulty: 1,
-        sleep_time: -1,
+        sleep_time: 0.1,
         days: 0,
+
         players: players,
+
         get_allowed_moves: getAllowedMoves,
-        practice_type: "sing",
         onStageBegin: onStageBegin,
         onStageEnd: onStageEnd,
         onDayBegin: onDayBegin,
         get_feasible_players: getFeasiblePlayers,
+        draw_card: drawCard,
+        random_choice: (list) => randomChoice(list, ctx),
+
         camera_position: "0",
+        practice_type: "sing",
       };
   },
   
@@ -274,6 +292,7 @@ export const Practice = Game({
       },
       testMove(G, ctx){
         console.log("It is the test move.");
+        G.draw_card(G, ctx);
       },
       endTurn(G, ctx){
         ctx.events.endTurn();
@@ -338,7 +357,24 @@ export const Practice = Game({
           G.player.fans += 1;
           G.player.lp -= 1;
           G.player.promoted = true;
+          console.log("Promoted!");
           }
+      },
+
+      useCard(G, ctx, id){
+          console.log("Player wants to use the card.");
+          if (id < G.player.hand.length){
+              let card = G.player.hand[id];
+              let cost = Cards[card].cost || 1;
+              if (G.player.lp >= cost){
+                G.player.lp -= cost;
+
+                G.player.hand.splice(id, 1);
+                Cards[card].effect(G, ctx);
+                console.log("Card used!");
+              }
+          }
+
       }
     }})
   
