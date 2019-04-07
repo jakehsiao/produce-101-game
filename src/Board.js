@@ -27,7 +27,7 @@ class Controller extends Component {
             main: {
                 练习: () => (this.set_branch("practice")),
                 推广: this.props.moves.promote,
-                行动: this.props.act,
+                行动卡: this.props.act,
             },
             practice: {
                 唱歌基础: this.props.moves.practiceBasicSing,

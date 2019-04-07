@@ -92,14 +92,11 @@ function onDayBegin(G, ctx){
         G.players[player].promoted = false;
     }
 
-    // Fix the player not updated bug
-    // This solution is ugly, I know, when the author reply my issue it may be changed.
-    G.player = G.players[(G.days - 1) % ctx.numPlayers];
-    if (G.player.is_eliminated){
-        ctx.events.endTurn();
-    }
-
     G.camera_position = ctx.random.Die(ctx.numPlayers - 1) + "";
+
+    // Fix the player not updated bug
+    G.player = G.players[(G.days - 1) % ctx.numPlayers];
+    G.start_turn(G, ctx);
 
 }
 
@@ -146,6 +143,19 @@ function drawCard(G, ctx, count){
     count = count || 1;
     for(let i=0; i<count; i++){
         G.player.hand.push(G.random_choice(Cards));
+    }
+}
+
+function costLP(G, count){
+    if (G.player.lp >= count){
+        G.player.lp -= count;
+        return true;
+    }
+}
+
+function startTurn(G, ctx){
+    if (G.player.is_eliminated){
+        ctx.events.endTurn();
     }
 }
 
@@ -198,6 +208,8 @@ export const Practice = Game({
         get_feasible_players: getFeasiblePlayers,
         draw_card: drawCard,
         random_choice: (list) => randomChoice(list, ctx),
+        cost_lp: costLP,
+        start_turn: startTurn,
 
         camera_position: "0",
         practice_type: "sing",
@@ -211,10 +223,7 @@ export const Practice = Game({
         console.log("It's a new turn!");
         G.player = G.players[ctx.currentPlayer];
 
-        if (G.player.is_eliminated){
-            console.log("Eliminated players can't play their turns.");
-            ctx.events.endTurn();
-        }
+        G.start_turn(G, ctx);
       },
 
       onTurnEnd(G, ctx){
@@ -274,21 +283,18 @@ export const Practice = Game({
   
     moves: {
       practiceBasicSing(G, ctx){
-        if (G.player.lp > 0){
+        if (G.cost_lp(G, 1)){ 
         G.player.sing += 1;
-        G.player.lp -= 1;
         }
       },
       practiceBasicDance(G, ctx){
-        if (G.player.lp > 0){
+        if (G.cost_lp(G, 1)){ 
         G.player.dance += 1;
-        G.player.lp -= 1;
         }
     },
       practiceSong(G, ctx){
-        if (G.player.lp > 0){
+        if (G.cost_lp(G, 1)){
         G.player.proficiency += Math.floor(Math.min(G.player.sing, G.player.dance) / 8) - G.difficulty + 2;
-        G.player.lp -= 1;
         }
       },
       testMove(G, ctx){
@@ -336,12 +342,16 @@ export const Practice = Game({
           student = player1;
         }
   
-        teacher[G.practice_type] += 1;
-        student[G.practice_type] += 2;
-        console.log("Practiced together!");
+        if (teacher.lp > 0 && student.lp > 0){
+            teacher[G.practice_type] += 1;
+            student[G.practice_type] += 2;
+            teacher.lp -= 1;
+            student.lp -= 1;
+            console.log("Practiced together!");
 
-        if (G.camera_position in [ctx.currentPlayer, ctx.actionPlayers[0]]){
-            teacher.fans += 3;
+            if (G.camera_position in [ctx.currentPlayer, ctx.actionPlayers[0]]){
+                teacher.fans += 3;
+            }
         }
   
         ctx.events.setActionPlayers([ctx.currentPlayer]);
@@ -374,10 +384,8 @@ export const Practice = Game({
               if (card.cost == undefined){
                   cost = 1;
               }
-              if (G.player.lp >= cost){
+              if (G.cost_lp(G, cost)){
                 // Use the card here
-                G.player.lp -= cost;
-
                 G.player.hand.splice(id, 1);
                 Cards[card].effect(G, ctx);
                 console.log("Card used!");
