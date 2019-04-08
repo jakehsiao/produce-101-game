@@ -115,6 +115,12 @@ class AvatarRow extends Component {
                 src={Images.camera}
              />)
              :""}
+
+             <text className="player-team">
+                 {this.props.players[playerID].team}
+             </text>
+
+
             </div>
             )})}
         </div>

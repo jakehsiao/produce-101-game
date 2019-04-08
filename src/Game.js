@@ -114,6 +114,24 @@ function onStageBegin(G, ctx){
 
     if (G.stage != STAGES[G.days / 7]){
       G.stage = STAGES[G.days / 7];
+
+      if (["主题曲评价", "出道评价"].includes(G.stage)){
+        for (var player_id in G.players){
+          G.players[player_id].team = "";
+        }
+      }
+
+
+      if (["分组对抗", "概念评价"].includes(G.stage)){
+        for (var player_id in G.players){
+          G.players[player_id].team = ctx.random.Die(2);
+        }
+      }
+      if (["位置评价"].includes(G.stage)){
+        for (var player_id in G.players){
+          G.players[player_id].team = ["V", "D"][ctx.random.Die(2)];
+        }
+      }
     }
 }
 
@@ -216,6 +234,7 @@ const playerSetup = () => ({
     hand: [],
     appointments: [],
     buffs: [],
+    team: "",
 
     rank: 0,
 

@@ -37,25 +37,14 @@
     flex-wrap: wrap;
 }
 
-.avatar-container {
-    height: 45px;
-    width: 45px;
-    zoom: 110%;
-}
+
 
 .avatar-img {
     height: 40px;
     margin: 5px;
 }
 
-.camera{
-    position: relative;
-    height: 20px;
-    border-style: solid;
-    border-width: 1px;
-    top: -60%;
-    left: 60%;
-}
+
 
 img.photo{
     height: 135px;
@@ -75,9 +64,34 @@ img.photo{
 
 .player-camera{
     position: relative;
+    height: 80px;
     top: -30%;
     left: 80%;
-    height: 80px;
+}
+.avatar-container {
+    height: 45px;
+    width: 45px;
+    zoom: 110%;
+
+    position: relative;
+}
+
+.camera{
+    position: absolute;
+    height: 20px;
+    border-style: solid;
+    border-width: 1px;
+    top: 70%;
+    left: 70%;
+
+
+}
+.player-team{
+    position: absolute;
+    font-size: 60%;
+    background-color: orange;
+    top: 15%;
+    left: 90%;
 }
 
 button.endturn{
