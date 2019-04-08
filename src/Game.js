@@ -5,6 +5,15 @@ import { PlayerInfo } from './PlayerInfo';
 import { Cards } from './Cards';
 import { Buffs } from './Buffs';
 
+const STAGES = [
+  "主题曲评价",
+  "分组对抗",
+  "位置评价",
+  "概念评价",
+  "出道评价",
+  "游戏结束",
+]
+
 
 function getAllowedMoves(G, ctx) {
     if (ctx.currentPlayer != ctx.actionPlayers[0]){
@@ -87,6 +96,8 @@ function onStageEnd(G, ctx){
 }
 
 function onStageBegin(G, ctx){
+    G.buffs = [];
+
     for (var player_id in G.players){
         let player = G.players[player_id];
 
@@ -94,9 +105,15 @@ function onStageBegin(G, ctx){
         player.hand = [];
         player.appointments = [];
 
-        player.hand.push(G.random_choice(Cards));  //TODO: change this according to which phase
+        for (let i = 0; i < (G.days + 1) / 7; i++){
+          player.hand.push(G.random_choice(Cards));  //TODO: change this according to which phase
+        }
 
         G.players[player_id] = player;
+    }
+
+    if (G.stage != STAGES[G.days / 7]){
+      G.stage = STAGES[G.days / 7];
     }
 }
 
@@ -110,13 +127,9 @@ function onDayBegin(G, ctx){
 
     G.camera_position = (ctx.random.Die(ctx.numPlayers) - 1) + "";
 
-    if (G.days % 7 == 1) {
-      for(let i=0; i<2; i++){
-    G.buffs.unshift(G.random_choice(Buffs));
-    G.appointment_costs.unshift(4);}
-    }
-    G.buffs.unshift(G.random_choice(Buffs));
-    G.appointment_costs.unshift(4);
+    for(let i=0; i<3; i++){
+      G.buffs.push(G.random_choice(Buffs));
+      G.appointment_costs.push(5);}
     G.appointment_costs = G.appointment_costs.map(i => Math.max(i-1, 0));
 
     // Fix the player not updated bug
@@ -195,8 +208,8 @@ const playerSetup = () => ({
     sing: 0,
     dance: 0,
     proficiency: 0,
-    lp: 3,
-    max_lp: 3,
+    lp: 4,
+    max_lp: 4,
     fans: 0,
     promoted: false,
     is_eliminated: false,
@@ -519,7 +532,7 @@ export const Practice = Game({
         }
         if (id < G.player.appointments.length){
             let card = G.player.appointments[id];
-            let cost = 3;
+            let cost = 4;
             if (G.cost_lp(G, cost)){
               // Use the card here
               G.player.appointments.splice(id, 1);

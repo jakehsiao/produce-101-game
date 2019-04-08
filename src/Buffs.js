@@ -58,14 +58,17 @@ export var Buffs = {
         }
     },
     如何爱上练习: {
-        desc: "在你的歌曲熟练度升阶时，将你的体力回复满",
+        desc: "在你的唱歌基础/跳舞基础/歌曲熟练度升阶时，将你的体力回复满",
         img: "HYB",
         effect(G, ctx){
-            G.player.onProficiencyLevelUp.push(
-                (G, ctx) => {
+            let recover = (G, ctx) => {
                     G.player.lp = G.player.max_lp;
-                }
-            );
+                };
+
+            G.player.onProficiencyLevelUp.push(
+                recover);
+            G.player.onBasicSingLevelUp.push(recover);
+            G.player.onBasicDanceLevelUp.push(recover);
         }
     },
     网红气质培养: {
@@ -126,13 +129,13 @@ export var Buffs = {
                 }
             )}
     },
-    行动力训练: {
-        desc: "如果你手里的行动卡数量多于3张，则练习歌曲熟练度的速度+2",
+    强力训练法: {
+        desc: "如果你的体力多于3点，则练习歌曲熟练度的速度+2",
         img: "Ella",
         effect(G, ctx){
             G.player.onPracticeSong.push(
                 (G, ctx) => {
-                    if (G.player.hand.length >= 3){
+                    if (G.player.lp >= 3){
                         G.player.proficiency += 2;
                     }
                 }

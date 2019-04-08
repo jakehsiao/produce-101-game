@@ -85,11 +85,11 @@ export var Cards = {
         }
     },
     领悟: {
-        desc: "提升2点歌曲熟练度",
+        desc: "提升3点歌曲熟练度",
         cost: 0,
         img: "郎一风",
         effect(G, ctx){
-            G.player.proficiency += 2;
+            G.player.proficiency += 3;
         }
     },
     蹭课: {

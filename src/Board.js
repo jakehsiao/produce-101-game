@@ -189,7 +189,7 @@ export class Board extends Component {
       let contents = {
           board: (
             <div>
-            <p className="stage-block">第{Math.ceil(this.props.G.days/7)}阶段 {(this.props.G.days - 1) % 7 + 1}/7天</p>
+            <p className="stage-block">第{Math.ceil(this.props.G.days/7)}阶段 {this.props.G.stage} {(this.props.G.days - 1) % 7 + 1}/7天</p>
             {/* Make actions hide when the current player is not 0 */}
             <div className="message-block">{this.props.G.messages[0]}</div>
             <PlayerInfo player={this.props.G.player} camera={this.props.G.camera_position == this.props.ctx.currentPlayer} />
