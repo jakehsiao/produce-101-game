@@ -9,6 +9,21 @@ import { Buffs } from './Buffs';
 import "./Board.css";
 import { Pass } from 'boardgame.io/dist/core';
 
+// const TEAM2COLOR = {
+//     1: "#ffc0cb",
+//     2: "#89cff0",
+//     "V": "#ffc0cb",
+//     "D": "#89cff0",
+// };
+
+const TEAM2COLOR = {
+    1: "red",
+    2: "blue",
+    V: "red",
+    D: "blue",
+}
+
+
 // Don't forget to regenerate using "generate_image_obj.py" when images are updated
 class Controller extends Component {
 
@@ -116,7 +131,7 @@ class AvatarRow extends Component {
              />)
              :""}
 
-             <text className="player-team">
+             <text className="player-team" style={{color: "white", backgroundColor: TEAM2COLOR[this.props.players[playerID].team]}}>
                  {this.props.players[playerID].team}
              </text>
 
@@ -268,7 +283,7 @@ export class Board extends Component {
                       this.setState({content: "board"});
                   }}
                   operation = "上课"
-                  cardCost = {(i) => (3)}
+                  cardCost = {(i) => (4)}
                 />
                 <button onClick={()=>this.setState({content:"board"})} className="back">返回</button>
             </div>

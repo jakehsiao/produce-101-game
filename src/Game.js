@@ -114,6 +114,7 @@ function onStageBegin(G, ctx){
 
     if (G.stage != STAGES[G.days / 7]){
       G.stage = STAGES[G.days / 7];
+      G.difficulty = Math.min((G.days / 7) + 1, 3);
 
       if (["主题曲评价", "出道评价"].includes(G.stage)){
         for (var player_id in G.players){
@@ -129,7 +130,7 @@ function onStageBegin(G, ctx){
       }
       if (["位置评价"].includes(G.stage)){
         for (var player_id in G.players){
-          G.players[player_id].team = ["V", "D"][ctx.random.Die(2)];
+          G.players[player_id].team = ["V", "D"][ctx.random.Die(2) - 1];
         }
       }
     }
@@ -279,7 +280,7 @@ export const Practice = Game({
       // Set G
       return {
         difficulty: 1,
-        sleep_time: 0.01,
+        sleep_time: 0.1,
         days: 0,
 
         players: players,
@@ -406,7 +407,8 @@ export const Practice = Game({
       practiceSong(G, ctx){
         if (G.cost_lp(G, 1)){
         let previous_value = G.player.proficiency;
-        G.player.proficiency += Math.floor(Math.min(G.player.sing, G.player.dance) / 8) - G.difficulty + 2;
+        let delta_proficiency = Math.floor(Math.min(G.player.sing, G.player.dance) / 8) - G.difficulty + 2;
+        if (delta_proficiency > 0) G.player.proficiency += delta_proficiency;
         G.player.proficiency = Math.min(48, G.player.proficiency);
         G.execute(G, ctx, G.player.onPracticeSong);
         if (DIV(G.player.proficiency, 8) - DIV(previous_value, 8) > 0){
